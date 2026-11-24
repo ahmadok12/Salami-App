@@ -56,6 +56,7 @@ function configToRows(config) {
     ['wedding_title', config.wedding_title || 'Wedding Salami Ledger'],
     ['envelope_prefix', config.envelope_prefix ?? ''],
     ['currency', config.currency || 'PKR'],
+    ['quick_chips', JSON.stringify(config.quick_chips || DEFAULT_CONFIG.quick_chips)],
     ['honorifics', JSON.stringify(config.honorifics || DEFAULT_CONFIG.honorifics)],
     ['events', JSON.stringify(config.events || DEFAULT_CONFIG.events)],
     ['groups', JSON.stringify(config.groups || DEFAULT_CONFIG.groups)],
@@ -70,7 +71,7 @@ function rowsToConfig(rows) {
   const parsed = {};
   for (const [key, val] of rows) {
     if (!key || key === 'key') continue;
-    if (['honorifics', 'events', 'groups', 'sides', 'cities_adaptive', 'visible_fields'].includes(key)) {
+    if (['quick_chips', 'honorifics', 'events', 'groups', 'sides', 'cities_adaptive', 'visible_fields'].includes(key)) {
       try {
         parsed[key] = JSON.parse(val);
       } catch {
@@ -132,7 +133,7 @@ export async function createWeddingSpreadsheet(accessToken, config) {
       valueInputOption: 'USER_ENTERED',
       data: [
         { range: 'Ledger!A1:O1', values: [LEDGER_HEADERS] },
-        { range: '_Config!A1:B13', values: configToRows(config) }
+        { range: '_Config!A1:B14', values: configToRows(config) }
       ]
     })
   });
@@ -271,7 +272,7 @@ export async function updateLedgerRowById(accessToken, spreadsheetId, entry) {
 
 export async function writeConfigTab(accessToken, spreadsheetId, config) {
   const res = await fetch(
-    `${SHEETS_BASE}/${spreadsheetId}/values/_Config!A1:B13?valueInputOption=USER_ENTERED`,
+    `${SHEETS_BASE}/${spreadsheetId}/values/_Config!A1:B14?valueInputOption=USER_ENTERED`,
     {
       method: 'PUT',
       headers: {

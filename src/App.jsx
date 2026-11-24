@@ -76,6 +76,10 @@ export default function App() {
   const nameInputRef = useRef(null);
 
   const currencyPreset = CURRENCY_PRESETS[config.currency] || CURRENCY_PRESETS.PKR;
+  const activeQuickChips =
+    Array.isArray(config.quick_chips) && config.quick_chips.length > 0
+      ? config.quick_chips
+      : currencyPreset.quickChips;
 
   // Boot: load IndexedDB, request persistent storage, listen to online/offline
   useEffect(() => {
@@ -611,13 +615,13 @@ export default function App() {
                       className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-base font-bold outline-none ring-2 ring-[#111111]"
                     />
                   ) : (
-                    <div className="mt-3 grid grid-cols-3 gap-2">
-                      {currencyPreset.quickChips.map((val) => (
+                    <div className={`mt-4 grid gap-2.5 ${activeQuickChips.length <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                      {activeQuickChips.map((val) => (
                         <button
                           key={val}
                           type="button"
                           onClick={() => tapQuickChip(val)}
-                          className="h-12 rounded-2xl bg-white text-sm font-extrabold text-[#111111] shadow-sm active:scale-95 active:bg-[#111111] active:text-white"
+                          className="h-16 rounded-[20px] bg-white px-2 text-[17px] font-extrabold tracking-tight text-[#111111] shadow-sm active:scale-95 active:bg-[#111111] active:text-white"
                         >
                           +{val.toLocaleString()}
                         </button>
@@ -1335,6 +1339,7 @@ export default function App() {
           entry={clearingEntry}
           remainingCount={pendingEnvelopes.length}
           currency={clearingEntry?.currency || config.currency}
+          quickChips={activeQuickChips}
           onClose={() => setClearingEntry(null)}
           onSaveAndNext={handleClearEnvelope}
         />

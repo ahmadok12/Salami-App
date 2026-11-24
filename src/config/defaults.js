@@ -34,6 +34,41 @@ export const CURRENCY_PRESETS = {
       10: '#5F8D7E'
     }
   },
+  INR: {
+    code: 'INR',
+    symbol: '₹',
+    quickChips: [500, 1000, 2000, 5000, 10000, 20000],
+    denominations: [500, 200, 100, 50, 20, 10],
+    noteColors: {
+      500: '#6E7B73',
+      200: '#E59A3C',
+      100: '#7B68A8',
+      50: '#35A2B8',
+      20: '#A5B84B',
+      10: '#8D5B4C'
+    }
+  },
+  SAR: {
+    code: 'SAR',
+    symbol: 'SAR',
+    quickChips: [50, 100, 200, 500, 1000, 2000],
+    denominations: [500, 200, 100, 50, 10, 5],
+    noteColors: {
+      500: '#3B6EA5',
+      200: '#8A8D91',
+      100: '#C04B4B',
+      50: '#3D8B68',
+      10: '#B57B4C',
+      5: '#6E5A9E'
+    }
+  },
+  AED: {
+    code: 'AED',
+    symbol: 'AED',
+    quickChips: [50, 100, 200, 500, 1000, 2000],
+    denominations: [1000, 500, 200, 100, 50, 20, 10, 5],
+    noteColors: { 1000: '#B57B4C', 500: '#3B6EA5', 200: '#C48A3A', 100: '#C04B4B', 50: '#6E5A9E', 20: '#3D8B68', 10: '#5F8D7E', 5: '#888888' }
+  },
   GBP: {
     code: 'GBP',
     symbol: '£',
@@ -47,13 +82,6 @@ export const CURRENCY_PRESETS = {
     quickChips: [20, 50, 100, 200, 500, 1000],
     denominations: [100, 50, 20, 10, 5, 1],
     noteColors: { 100: '#3D8B68', 50: '#C04B4B', 20: '#5F8D7E', 10: '#C48A3A', 5: '#6E5A9E', 1: '#555555' }
-  },
-  AED: {
-    code: 'AED',
-    symbol: 'AED ',
-    quickChips: [50, 100, 200, 500, 1000, 2000],
-    denominations: [1000, 500, 200, 100, 50, 20, 10, 5],
-    noteColors: { 1000: '#B57B4C', 500: '#3B6EA5', 200: '#C48A3A', 100: '#C04B4B', 50: '#6E5A9E', 20: '#3D8B68', 10: '#5F8D7E', 5: '#888888' }
   }
 };
 
@@ -63,6 +91,7 @@ export const DEFAULT_CONFIG = {
   active_collector: 'Collector 1',
   envelope_prefix: 'A-',
   currency: 'PKR',
+  quick_chips: [500, 1000, 2000, 5000, 10000, 20000],
   honorifics: [
     'Haji', 'Mian', 'Chaudhry', 'Dr.', 'Malik', 'Sardar',
     'Chacha', 'Mamu', 'Khala', 'Phupho', 'Taya', 'Uncle', 'Aunty'

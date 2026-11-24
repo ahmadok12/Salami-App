@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { X, ArrowRight, Delete } from 'lucide-react';
 import { CURRENCY_PRESETS, formatCurrency } from '../config/defaults.js';
 
-export default function EnvelopeClearSheet({ entry, remainingCount, currency, onClose, onSaveAndNext }) {
+export default function EnvelopeClearSheet({ entry, remainingCount, currency, quickChips, onClose, onSaveAndNext }) {
   const [digits, setDigits] = useState('');
   const preset = CURRENCY_PRESETS[currency] || CURRENCY_PRESETS.PKR;
+  const activeChips = Array.isArray(quickChips) && quickChips.length > 0 ? quickChips : preset.quickChips;
 
   useEffect(() => {
     setDigits('');
@@ -50,12 +51,12 @@ export default function EnvelopeClearSheet({ entry, remainingCount, currency, on
 
         {/* Quick Chips */}
         <div className="mb-4 flex gap-2 overflow-x-auto no-scrollbar">
-          {preset.quickChips.map((amt) => (
+          {activeChips.map((amt) => (
             <button
               key={amt}
               type="button"
               onClick={() => setDigits(String(numericAmount + amt))}
-              className="shrink-0 rounded-full bg-[#F6F6F6] px-3.5 py-2 text-xs font-bold text-[#111111] active:bg-[#111111] active:text-white"
+              className="shrink-0 rounded-full bg-[#F6F6F6] px-4 py-2.5 text-sm font-extrabold text-[#111111] active:bg-[#111111] active:text-white"
             >
               +{amt.toLocaleString()}
             </button>

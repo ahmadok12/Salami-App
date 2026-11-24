@@ -54,6 +54,76 @@ function ChipEditor({ label, items, onChange, placeholder }) {
   );
 }
 
+
+function AmountChipEditor({ currency, items, onChange }) {
+  const [draft, setDraft] = useState('');
+  const preset = CURRENCY_PRESETS[currency] || CURRENCY_PRESETS.PKR;
+  const activeItems = Array.isArray(items) && items.length > 0 ? items : preset.quickChips;
+
+  const addAmount = () => {
+    const num = parseInt(draft.replace(/[^0-9]/g, ''), 10);
+    if (!num || num <= 0 || activeItems.includes(num)) return;
+    onChange([...activeItems, num].sort((a, b) => a - b));
+    setDraft('');
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+          Quick Amount Tiles ({currency})
+        </label>
+        <button
+          type="button"
+          onClick={() => onChange([...preset.quickChips])}
+          className="text-[11px] font-bold text-[#FF7A00]"
+        >
+          Reset defaults
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {activeItems.map((val) => (
+          <span
+            key={val}
+            className="inline-flex items-center gap-1 rounded-full bg-[#F6F6F6] px-3.5 py-1.5 text-xs font-bold text-[#111111]"
+          >
+            +{val.toLocaleString()}
+            <button
+              type="button"
+              onClick={() => {
+                const next = activeItems.filter((i) => i !== val);
+                if (next.length > 0) onChange(next);
+              }}
+              className="ml-0.5 text-neutral-400 hover:text-red-500"
+              aria-label={`Remove ${val}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="number"
+          inputMode="numeric"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAmount())}
+          placeholder={`Add tile amount (e.g. ${preset.quickChips[0]})`}
+          className="flex-1 rounded-2xl bg-[#F6F6F6] px-3.5 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[#111111]"
+        />
+        <button
+          type="button"
+          onClick={addAmount}
+          className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#111111] text-white"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsDrawer({ open, onClose, config, onSaveConfig }) {
   const [draft, setDraft] = useState(config);
 
@@ -173,23 +243,35 @@ export default function SettingsDrawer({ open, onClose, config, onSaveConfig }) 
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Currency & Notes</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {Object.keys(CURRENCY_PRESETS).map((code) => (
                 <button
                   key={code}
                   type="button"
-                  onClick={() => setDraft({ ...draft, currency: code })}
+                  onClick={() =>
+                    setDraft({
+                      ...draft,
+                      currency: code,
+                      quick_chips: [...CURRENCY_PRESETS[code].quickChips]
+                    })
+                  }
                   className={`rounded-2xl py-2.5 text-sm font-bold transition ${
                     draft.currency === code
                       ? 'bg-[#111111] text-white'
                       : 'bg-[#F6F6F6] text-[#111111]'
                   }`}
                 >
-                  {code}
+                  {code} ({CURRENCY_PRESETS[code].symbol})
                 </button>
               ))}
             </div>
           </div>
+
+          <AmountChipEditor
+            currency={draft.currency}
+            items={draft.quick_chips}
+            onChange={(quick_chips) => setDraft({ ...draft, quick_chips })}
+          />
 
           <ChipEditor
             label="Honorific Prefixes"
