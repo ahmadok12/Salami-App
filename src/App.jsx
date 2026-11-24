@@ -36,6 +36,7 @@ import {
 import { processSyncQueue, exportEntriesToCSV } from './services/syncEngine.js';
 import SettingsDrawer from './components/SettingsDrawer.jsx';
 import EnvelopeClearSheet from './components/EnvelopeClearSheet.jsx';
+import BanknoteTile from './components/BanknoteTile.jsx';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('collect'); // collect | ledger | summary | sheet
@@ -617,14 +618,12 @@ export default function App() {
                   ) : (
                     <div className={`mt-4 grid gap-2.5 ${activeQuickChips.length <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                       {activeQuickChips.map((val) => (
-                        <button
+                        <BanknoteTile
                           key={val}
-                          type="button"
-                          onClick={() => tapQuickChip(val)}
-                          className="h-16 rounded-[20px] bg-white px-2 text-[17px] font-extrabold tracking-tight text-[#111111] shadow-sm active:scale-95 active:bg-[#111111] active:text-white"
-                        >
-                          +{val.toLocaleString()}
-                        </button>
+                          amount={val}
+                          currency={config.currency}
+                          onClick={tapQuickChip}
+                        />
                       ))}
                     </div>
                   )}

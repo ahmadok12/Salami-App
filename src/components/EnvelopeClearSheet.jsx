@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, ArrowRight, Delete } from 'lucide-react';
-import { CURRENCY_PRESETS, formatCurrency } from '../config/defaults.js';
+import { CURRENCY_PRESETS, formatCurrency, getTileVisualTheme } from '../config/defaults.js';
 
 export default function EnvelopeClearSheet({ entry, remainingCount, currency, quickChips, onClose, onSaveAndNext }) {
   const [digits, setDigits] = useState('');
@@ -49,18 +49,22 @@ export default function EnvelopeClearSheet({ entry, remainingCount, currency, qu
           </div>
         </div>
 
-        {/* Quick Chips */}
-        <div className="mb-4 flex gap-2 overflow-x-auto no-scrollbar">
-          {activeChips.map((amt) => (
-            <button
-              key={amt}
-              type="button"
-              onClick={() => setDigits(String(numericAmount + amt))}
-              className="shrink-0 rounded-full bg-[#F6F6F6] px-4 py-2.5 text-sm font-extrabold text-[#111111] active:bg-[#111111] active:text-white"
-            >
-              +{amt.toLocaleString()}
-            </button>
-          ))}
+        {/* Banknote-Colored Quick Chips */}
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+          {activeChips.map((amt) => {
+            const theme = getTileVisualTheme(amt, currency);
+            return (
+              <button
+                key={amt}
+                type="button"
+                style={{ backgroundColor: theme.bg }}
+                onClick={() => setDigits(String(numericAmount + amt))}
+                className="shrink-0 rounded-full px-4 py-2.5 text-sm font-extrabold text-white shadow-sm active:scale-95"
+              >
+                +{amt.toLocaleString()}
+              </button>
+            );
+          })}
         </div>
 
         {/* Numeric Keypad */}
