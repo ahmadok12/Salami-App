@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Settings, Mic, MicOff, ArrowRight, Home, ListChecks, BarChart3,
   FileSpreadsheet, Plus, Search, Download, RefreshCw, Cloud, CloudOff,
-  CheckCircle2, ExternalLink, FolderOpen, AlertTriangle, Undo2
+  CheckCircle2, ExternalLink, FolderOpen, AlertTriangle, Undo2, Delete
 } from 'lucide-react';
 import {
   CURRENCY_PRESETS,
@@ -191,10 +191,23 @@ export default function App() {
   };
 
   const applyCustomAmount = (valStr) => {
-    setCustomAmountInput(valStr);
-    const num = Math.max(0, parseInt(valStr.replace(/[^0-9]/g, ''), 10) || 0);
+    const cleaned = valStr.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '').slice(0, 8);
+    setCustomAmountInput(cleaned);
+    const num = Math.max(0, parseInt(cleaned, 10) || 0);
     setAmount(num);
     setNotesMap(breakdownAmountToNotes(num, config.currency));
+  };
+
+  const tapCustomNumpadKey = (key) => {
+    if (key === 'DEL') {
+      applyCustomAmount(customAmountInput.slice(0, -1));
+    } else if (key === 'CLEAR') {
+      applyCustomAmount('');
+    } else if (key === '00') {
+      if (customAmountInput) applyCustomAmount(customAmountInput + '00');
+    } else {
+      applyCustomAmount(customAmountInput + key);
+    }
   };
 
   const tapHonorific = (prefix) => {
@@ -653,8 +666,20 @@ export default function App() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setShowCustomInput((v) => !v)}
-                      className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#111111] shadow-sm"
+                      onClick={() => {
+                        setShowCustomInput((v) => {
+                          const next = !v;
+                          if (next) {
+                            setCustomAmountInput(amount > 0 ? String(amount) : '');
+                          }
+                          return next;
+                        });
+                      }}
+                      className={`rounded-full px-3.5 py-1.5 text-xs font-bold shadow-sm transition ${
+                        showCustomInput
+                          ? 'bg-[#111111] text-white'
+                          : 'bg-white text-[#111111]'
+                      }`}
                     >
                       {showCustomInput ? 'Chips' : 'Custom'}
                     </button>
@@ -677,14 +702,25 @@ export default function App() {
                   )}
 
                   {showCustomInput ? (
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={customAmountInput}
-                      onChange={(e) => applyCustomAmount(e.target.value)}
-                      placeholder="Enter custom amount..."
-                      className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-base font-bold outline-none ring-2 ring-[#111111]"
-                    />
+                    <div className="mt-3.5 space-y-2.5">
+                      <div className="grid grid-cols-3 gap-2">
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', 'DEL'].map((k) => (
+                          <button
+                            key={k}
+                            type="button"
+                            onClick={() => tapCustomNumpadKey(k)}
+                            aria-label={k === 'DEL' ? 'Backspace' : k}
+                            className={`flex h-14 items-center justify-center rounded-[18px] text-xl font-extrabold shadow-sm transition active:scale-95 ${
+                              k === 'DEL'
+                                ? 'bg-neutral-200/80 text-[#111111] active:bg-[#111111] active:text-white'
+                                : 'bg-white text-[#111111] active:bg-[#111111] active:text-white'
+                            }`}
+                          >
+                            {k === 'DEL' ? <Delete className="h-5 w-5" /> : k}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ) : (
                     <div className={`mt-4 grid gap-2.5 ${activeQuickChips.length <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                       {activeQuickChips.map((val) => (
