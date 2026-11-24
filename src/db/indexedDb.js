@@ -42,14 +42,29 @@ export async function getStorageEstimate() {
 export async function loadLocalConfig() {
   const row = await db.config.get('wedding_config');
   if (row && row.value) {
-    return { ...DEFAULT_CONFIG, ...row.value };
+    return {
+      ...DEFAULT_CONFIG,
+      ...row.value,
+      visible_fields: {
+        ...DEFAULT_CONFIG.visible_fields,
+        ...(row.value.visible_fields || {})
+      }
+    };
   }
   await db.config.put({ key: 'wedding_config', value: DEFAULT_CONFIG });
   return { ...DEFAULT_CONFIG };
 }
 
 export async function saveLocalConfig(newConfig, enqueueSync = true) {
-  const merged = { ...DEFAULT_CONFIG, ...newConfig, updated_at: new Date().toISOString() };
+  const merged = {
+    ...DEFAULT_CONFIG,
+    ...newConfig,
+    visible_fields: {
+      ...DEFAULT_CONFIG.visible_fields,
+      ...(newConfig.visible_fields || {})
+    },
+    updated_at: new Date().toISOString()
+  };
   await db.config.put({ key: 'wedding_config', value: merged });
   if (enqueueSync) {
     // Deduplicate pending config syncs

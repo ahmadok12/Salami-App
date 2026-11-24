@@ -709,119 +709,138 @@ export default function App() {
                 )}
               </div>
 
-              {/* Optional Fields — None selected by default */}
-              <div className="space-y-4 border-t border-neutral-100 pt-4">
-                <div className="space-y-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                    Group / Relation (Optional)
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {config.groups.map((g) => (
-                      <button
-                        key={g}
-                        type="button"
-                        onClick={() => setSelectedGroup(selectedGroup === g ? '' : g)}
-                        className={`rounded-full px-3.5 py-2 text-xs font-bold transition ${
-                          selectedGroup === g
-                            ? 'bg-[#111111] text-white'
-                            : 'bg-[#F6F6F6] text-[#111111]'
-                        }`}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              {/* Optional Fields — Hidden by default; toggled in Wedding Settings */}
+              {(() => {
+                const vf = config.visible_fields || {};
+                const anyVisible = vf.group || vf.event || vf.side || vf.city || vf.note;
+                if (!anyVisible) return null;
+                return (
+                  <div className="space-y-4 border-t border-neutral-100 pt-4">
+                    {vf.group && (
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                          Group / Relation (Optional)
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {config.groups.map((g) => (
+                            <button
+                              key={g}
+                              type="button"
+                              onClick={() => setSelectedGroup(selectedGroup === g ? '' : g)}
+                              className={`rounded-full px-3.5 py-2 text-xs font-bold transition ${
+                                selectedGroup === g
+                                  ? 'bg-[#111111] text-white'
+                                  : 'bg-[#F6F6F6] text-[#111111]'
+                              }`}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                      Event (Optional)
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {config.events.map((ev) => (
-                        <button
-                          key={ev}
-                          type="button"
-                          onClick={() => setSelectedEvent(selectedEvent === ev ? '' : ev)}
-                          className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                            selectedEvent === ev
-                              ? 'bg-[#111111] text-white'
-                              : 'bg-[#F6F6F6] text-[#111111]'
-                          }`}
-                        >
-                          {ev}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                    {(vf.event || vf.side) && (
+                      <div className={`grid gap-3 ${vf.event && vf.side ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        {vf.event && (
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                              Event (Optional)
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {config.events.map((ev) => (
+                                <button
+                                  key={ev}
+                                  type="button"
+                                  onClick={() => setSelectedEvent(selectedEvent === ev ? '' : ev)}
+                                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                                    selectedEvent === ev
+                                      ? 'bg-[#111111] text-white'
+                                      : 'bg-[#F6F6F6] text-[#111111]'
+                                  }`}
+                                >
+                                  {ev}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
-                  <div className="space-y-1.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                      Side (Optional)
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {config.sides.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setSelectedSide(selectedSide === s ? '' : s)}
-                          className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                            selectedSide === s
-                              ? 'bg-[#111111] text-white'
-                              : 'bg-[#F6F6F6] text-[#111111]'
-                          }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                        {vf.side && (
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                              Side (Optional)
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {config.sides.map((s) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  onClick={() => setSelectedSide(selectedSide === s ? '' : s)}
+                                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                                    selectedSide === s
+                                      ? 'bg-[#111111] text-white'
+                                      : 'bg-[#F6F6F6] text-[#111111]'
+                                  }`}
+                                >
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                <div className="space-y-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                    City (Optional)
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {adaptiveCities.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCity(selectedCity === c ? '' : c);
-                          setCustomCity('');
-                        }}
-                        className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
-                          selectedCity === c
-                            ? 'bg-[#111111] text-white'
-                            : 'bg-[#F6F6F6] text-[#111111]'
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    value={customCity}
-                    onChange={(e) => {
-                      setCustomCity(e.target.value);
-                      if (e.target.value) setSelectedCity('');
-                    }}
-                    placeholder="Or type another city..."
-                    className="mt-1.5 w-full rounded-2xl bg-[#F6F6F6] px-3.5 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#111111]"
-                  />
-                </div>
+                    {vf.city && (
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                          City (Optional)
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {adaptiveCities.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCity(selectedCity === c ? '' : c);
+                                setCustomCity('');
+                              }}
+                              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                                selectedCity === c
+                                  ? 'bg-[#111111] text-white'
+                                  : 'bg-[#F6F6F6] text-[#111111]'
+                              }`}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          value={customCity}
+                          onChange={(e) => {
+                            setCustomCity(e.target.value);
+                            if (e.target.value) setSelectedCity('');
+                          }}
+                          placeholder="Or type another city..."
+                          className="mt-1.5 w-full rounded-2xl bg-[#F6F6F6] px-3.5 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#111111]"
+                        />
+                      </div>
+                    )}
 
-                <input
-                  type="text"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Optional note (e.g. Sent via brother)..."
-                  className="w-full rounded-2xl bg-[#F6F6F6] px-3.5 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#111111]"
-                />
-              </div>
+                    {vf.note && (
+                      <input
+                        type="text"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="Optional note (e.g. Sent via brother)..."
+                        className="w-full rounded-2xl bg-[#F6F6F6] px-3.5 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#111111]"
+                      />
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Signature Orange CTA Banner */}
               <button
@@ -1223,7 +1242,7 @@ export default function App() {
                       <div key={k} className="flex justify-between gap-3 border-b border-neutral-50 pb-1">
                         <span className="font-bold text-neutral-500">{k}</span>
                         <span className="truncate font-semibold text-[#111111]">
-                          {Array.isArray(v) ? v.join(', ') : String(v)}
+                          {Array.isArray(v) ? v.join(', ') : typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v)}
                         </span>
                       </div>
                     ))}

@@ -117,6 +117,60 @@ export default function SettingsDrawer({ open, onClose, config, onSaveConfig }) 
             </div>
           </div>
 
+          {/* Home Screen Optional Fields Toggles */}
+          <div className="space-y-2.5 rounded-[22px] bg-[#F6F6F6] p-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                Home Screen Optional Fields
+              </label>
+              <p className="mt-0.5 text-[11px] font-medium text-neutral-400">
+                Keep off for a clean, single-screen fast entry view.
+              </p>
+            </div>
+            <div className="space-y-2 pt-1">
+              {[
+                { key: 'group', label: 'Group / Relation' },
+                { key: 'event', label: 'Event (Mehndi / Barat / Walima)' },
+                { key: 'side', label: 'Side (Groom / Bride)' },
+                { key: 'city', label: 'City' },
+                { key: 'note', label: 'Note' }
+              ].map(({ key, label }) => {
+                const enabled = Boolean(draft.visible_fields?.[key]);
+                return (
+                  <div
+                    key={key}
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        visible_fields: {
+                          ...(draft.visible_fields || {}),
+                          [key]: !enabled
+                        }
+                      })
+                    }
+                    className="flex cursor-pointer items-center justify-between rounded-2xl bg-white px-3.5 py-2.5"
+                  >
+                    <span className="text-xs font-bold text-[#111111]">{label}</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={enabled}
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                        enabled ? 'bg-[#FF7A00]' : 'bg-neutral-200'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                          enabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Currency & Notes</label>
             <div className="grid grid-cols-4 gap-2">

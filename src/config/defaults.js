@@ -70,7 +70,14 @@ export const DEFAULT_CONFIG = {
   events: ['Mehndi', 'Barat', 'Walima'],
   groups: ['Dadhaal', 'Nanhaal', 'Neighbors', 'Office', 'Friends', 'Village'],
   sides: ['Groom Side', 'Bride Side'],
-  cities_adaptive: ['Lahore', 'Islamabad', 'Karachi', 'Faisalabad']
+  cities_adaptive: ['Lahore', 'Islamabad', 'Karachi', 'Faisalabad'],
+  visible_fields: {
+    group: false,
+    event: false,
+    side: false,
+    city: false,
+    note: false
+  }
 };
 
 export function formatCurrency(amount, currencyCode = 'PKR') {
