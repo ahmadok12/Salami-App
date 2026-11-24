@@ -17,3 +17,31 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@keyframes logoFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmerSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+.animate-logo-in {
+  animation: logoFloatIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-shimmer-bar {
+  animation: shimmerSlide 1.2s ease-in-out infinite;
+}

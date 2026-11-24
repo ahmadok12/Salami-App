@@ -23,38 +23,67 @@ export default function BanknoteTile({ amount, currency, onClick }) {
     ? `./notes/${currFolder}/${baseDenom}.${IMAGE_EXTENSIONS[extIndex]}`
     : null;
 
+  const isBundle = !isExactDenom && totalNotes > 1;
+
   return (
     <button
       type="button"
       onClick={() => onClick(amount)}
       style={{ backgroundColor: bg }}
-      className="group relative flex flex-col items-center justify-between overflow-hidden rounded-[20px] p-2.5 pt-2.5 text-white shadow-md ring-1 ring-black/10 transition-transform active:scale-[0.96]"
+      className="group relative flex flex-col items-center justify-between overflow-hidden rounded-[20px] px-2 pt-3.5 pb-2.5 text-white shadow-md ring-1 ring-black/10 transition-transform active:scale-[0.96]"
     >
       {/* Subtle top sheen */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent" />
 
-      {/* Miniature Banknote Visual (Real Photo from public/notes/ with automatic SVG fallback) */}
-      <div className="relative mb-2 w-full">
-        {/* Stacked banknote edges for multi-note bundle amounts (e.g. 2,000 / 10,000 / 20,000) */}
+      {/* Banknote Stack Area (consistent height across single & bundled tiles) */}
+      <div className="relative mb-2 mt-1 w-full">
+        {/* Back Stack Layer 3 (thick bundles like 4+ notes, e.g. Rs. 20,000) */}
         {stackLayers >= 3 && (
           <div
-            style={{ backgroundColor: paper, borderColor: ink }}
-            className="mx-2.5 -mb-[4px] h-1.5 rounded-t-[4px] border border-b-0 opacity-65"
-          />
-        )}
-        {stackLayers >= 2 && (
-          <div
-            style={{ backgroundColor: paper, borderColor: ink }}
-            className="mx-1.5 -mb-[3px] h-1.5 rounded-t-[5px] border border-b-0 opacity-90"
-          />
+            aria-hidden="true"
+            style={{ backgroundColor: paper }}
+            className="pointer-events-none absolute inset-x-2.5 -top-3 bottom-2.5 overflow-hidden rounded-[6px] shadow-sm ring-1 ring-black/35 brightness-75"
+          >
+            {imgLoaded && imgSrc && (
+              <img
+                src={imgSrc}
+                alt=""
+                className="h-full w-full object-cover object-top"
+              />
+            )}
+          </div>
         )}
 
-        {/* Primary Note Face */}
+        {/* Back Stack Layer 2 (2+ note bundles, e.g. Rs. 2,000 / 10,000 / 20,000) */}
+        {stackLayers >= 2 && (
+          <div
+            aria-hidden="true"
+            style={{ backgroundColor: paper }}
+            className={`pointer-events-none absolute inset-x-1 overflow-hidden rounded-[6px] shadow-md ring-1 ring-black/35 brightness-90 ${
+              stackLayers >= 3 ? '-top-1.5 bottom-1.5' : '-top-2 bottom-2'
+            }`}
+          >
+            {imgLoaded && imgSrc && (
+              <img
+                src={imgSrc}
+                alt=""
+                className="h-full w-full object-cover object-top"
+              />
+            )}
+          </div>
+        )}
+
+        {/* Primary Front Note Face — full uncropped note */}
         <div
-          style={{ backgroundColor: paper, borderColor: `${ink}35` }}
-          className="relative h-12 w-full overflow-hidden rounded-[8px] border shadow-sm"
+          style={{
+            backgroundColor: imgLoaded ? 'transparent' : paper,
+            borderColor: imgLoaded ? 'transparent' : `${ink}35`
+          }}
+          className={`relative z-10 flex aspect-[2.35/1] w-full items-center justify-center rounded-[6px] ${
+            imgLoaded ? '' : 'overflow-hidden border shadow-md'
+          }`}
         >
-          {/* Real or starter banknote thumbnail */}
+          {/* Real banknote photo — object-contain displays 100% of the note with zero edge cropping */}
           {imgSrc && (
             <img
               src={imgSrc}
@@ -66,13 +95,13 @@ export default function BanknoteTile({ amount, currency, onClick }) {
                 setImgLoaded(false);
                 setExtIndex((prev) => prev + 1);
               }}
-              className={`h-full w-full object-cover transition-opacity duration-150 ${
+              className={`max-h-full max-w-full rounded-[6px] object-contain shadow-md ring-1 ring-black/25 transition-opacity duration-150 ${
                 imgLoaded ? 'opacity-100' : 'opacity-0'
               }`}
             />
           )}
 
-          {/* Fallback Stylized SVG Banknote (visible while loading or if no photo exists for this currency/denom) */}
+          {/* Fallback Stylized SVG Banknote (if no photo exists for this currency/denom) */}
           {!imgLoaded && (
             <div className="absolute inset-0">
               <svg
@@ -143,14 +172,14 @@ export default function BanknoteTile({ amount, currency, onClick }) {
                 style={{ color: ink }}
                 className="pointer-events-none absolute right-1.5 bottom-1 text-[9px] font-extrabold leading-none"
               >
-                {!isExactDenom && totalNotes > 1 ? `×${totalNotes}` : baseDenom.toLocaleString()}
+                {isBundle ? `×${totalNotes}` : baseDenom.toLocaleString()}
               </span>
             </div>
           )}
 
-          {/* Bundle multiplier pill overlaid cleanly on top of real photo for multi-note chips */}
-          {imgLoaded && !isExactDenom && totalNotes > 1 && (
-            <span className="pointer-events-none absolute right-1 bottom-1 rounded bg-black/75 px-1.5 py-0.5 text-[9px] font-extrabold leading-none text-white">
+          {/* Crisp Bundle Count Pill */}
+          {imgLoaded && isBundle && (
+            <span className="pointer-events-none absolute right-1 bottom-1 rounded-md bg-black/85 px-1.5 py-0.5 text-[9px] font-extrabold leading-none text-white ring-1 ring-white/45 shadow">
               ×{totalNotes}
             </span>
           )}

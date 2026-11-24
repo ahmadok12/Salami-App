@@ -148,3 +148,20 @@ export async function upsertSyncedEntries(remoteEntries) {
   const cleaned = remoteEntries.map((e) => ({ ...e, sync_status: 'synced' }));
   await db.entries.bulkPut(cleaned);
 }
+
+
+export async function isOnboardingCompleted() {
+  const row = await db.config.get('onboarding_completed');
+  if (row && row.value === true) return true;
+  // Returning users who already logged entries before this update skip onboarding automatically
+  const existingCount = await db.entries.count();
+  if (existingCount > 0) {
+    await db.config.put({ key: 'onboarding_completed', value: true });
+    return true;
+  }
+  return false;
+}
+
+export async function setOnboardingCompleted(done = true) {
+  await db.config.put({ key: 'onboarding_completed', value: Boolean(done) });
+}

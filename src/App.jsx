@@ -25,7 +25,9 @@ import {
   deleteEntryOfflineFirst,
   getPendingQueueCount,
   requestPersistentStorage,
-  upsertSyncedEntries
+  upsertSyncedEntries,
+  isOnboardingCompleted,
+  setOnboardingCompleted
 } from './db/indexedDb.js';
 import { isGoogleConfigured, signInWithGoogle, getAccessToken } from './services/googleAuth.js';
 import {
@@ -37,6 +39,8 @@ import { processSyncQueue, exportEntriesToCSV } from './services/syncEngine.js';
 import SettingsDrawer from './components/SettingsDrawer.jsx';
 import EnvelopeClearSheet from './components/EnvelopeClearSheet.jsx';
 import BanknoteTile from './components/BanknoteTile.jsx';
+import Preloader from './components/Preloader.jsx';
+import OnboardingFlow from './components/OnboardingFlow.jsx';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('collect'); // collect | ledger | summary | sheet
@@ -48,6 +52,9 @@ export default function App() {
   const [pendingQueue, setPendingQueue] = useState(0);
   const [syncingNow, setSyncingNow] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showPreloader, setShowPreloader] = useState(true);
+  const [preloaderFading, setPreloaderFading] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(true);
 
   // Collect form state (all optional fields deselected by default)
   const [mode, setMode] = useState('Cash'); // Cash | Envelope
@@ -85,17 +92,23 @@ export default function App() {
   // Boot: load IndexedDB, request persistent storage, listen to online/offline
   useEffect(() => {
     (async () => {
+      const minDelay = new Promise((resolve) => setTimeout(resolve, 950));
       await requestPersistentStorage();
-      const [cfg, meta, savedEntries, qCount] = await Promise.all([
+      const [cfg, meta, savedEntries, qCount, onboarded] = await Promise.all([
         loadLocalConfig(),
         loadSheetMeta(),
         getAllEntries(),
-        getPendingQueueCount()
+        getPendingQueueCount(),
+        isOnboardingCompleted()
       ]);
       setConfig(cfg);
       setSheetMeta(meta);
       setEntries(savedEntries);
       setPendingQueue(qCount);
+      setOnboardingDone(onboarded);
+      await minDelay;
+      setPreloaderFading(true);
+      setTimeout(() => setShowPreloader(false), 320);
     })();
 
     const onOnline = async () => {
@@ -323,16 +336,58 @@ export default function App() {
     setPendingQueue(res.remaining);
   };
 
+  const handleCompleteOnboarding = async (newCfg) => {
+    const saved = await saveLocalConfig(newCfg, true);
+    await setOnboardingCompleted(true);
+    setConfig(saved);
+    setOnboardingDone(true);
+    setPendingQueue(await getPendingQueueCount());
+    showToast(`Ready for ${saved.wedding_title}!`);
+  };
+
   // Google Auth & Sheet Actions
   const handleGoogleSignIn = async () => {
     try {
-      const { user } = await signInWithGoogle();
+      const { accessToken, user } = await signInWithGoogle();
       setGoogleUser(user);
-      if (user.name) {
-        const updated = await saveLocalConfig({ ...config, active_collector: user.name }, false);
-        setConfig(updated);
+
+      let activeCfg = config;
+      if (user.name && (!config.active_collector || config.active_collector === 'Collector 1')) {
+        activeCfg = await saveLocalConfig({ ...config, active_collector: user.name }, false);
+        setConfig(activeCfg);
       }
-      showToast(`Signed in as ${user.name}`);
+
+      const existingMeta = await loadSheetMeta();
+      if (!existingMeta?.spreadsheetId) {
+        setSyncingNow(true);
+        try {
+          const meta = await createWeddingSpreadsheet(accessToken, activeCfg);
+          await saveSheetMeta(meta);
+          setSheetMeta(meta);
+          const res = await processSyncQueue();
+          setPendingQueue(res.remaining);
+          setEntries(await getAllEntries());
+          showToast(`Signed in & created "${meta.spreadsheetName}"!`);
+        } catch (sheetErr) {
+          showToast(`Signed in, but sheet creation failed: ${sheetErr.message}`);
+        } finally {
+          setSyncingNow(false);
+        }
+      } else {
+        setSyncingNow(true);
+        try {
+          const res = await processSyncQueue();
+          setPendingQueue(res.remaining);
+          setEntries(await getAllEntries());
+          showToast(
+            res.synced > 0
+              ? `Signed in as ${user.name} • Synced ${res.synced} item(s)`
+              : `Signed in as ${user.name}`
+          );
+        } finally {
+          setSyncingNow(false);
+        }
+      }
     } catch (err) {
       showToast(err.message);
     }
@@ -470,6 +525,14 @@ export default function App() {
     <div className="flex min-h-screen items-center justify-center bg-[#F2D5BB] sm:py-6">
       {/* Mobile Shell */}
       <div className="relative flex min-h-screen w-full max-w-[430px] flex-col bg-white shadow-2xl sm:min-h-[844px] sm:rounded-[44px] sm:overflow-hidden">
+        {/* Animated Splash Preloader */}
+        {showPreloader && <Preloader fadingOut={preloaderFading} />}
+
+        {/* First-Time Onboarding Flow */}
+        {!onboardingDone ? (
+          <OnboardingFlow initialConfig={config} onComplete={handleCompleteOnboarding} />
+        ) : (
+        <>
         {/* Toast */}
         {toast && (
           <div className="fixed top-4 left-1/2 z-50 flex w-[92%] max-w-[390px] -translate-x-1/2 items-center justify-between rounded-2xl bg-[#111111] px-4 py-3 text-xs font-semibold text-white shadow-xl">
@@ -487,16 +550,23 @@ export default function App() {
 
         {/* Top Header */}
         <header className="flex items-center justify-between px-6 pt-6 pb-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-              {config.wedding_title}
-            </p>
-            <h1 className="text-[28px] font-extrabold leading-tight tracking-tight text-[#111111]">
-              {activeTab === 'collect' && 'Collect Salami'}
-              {activeTab === 'ledger' && 'My Ledger'}
-              {activeTab === 'summary' && 'Summary'}
-              {activeTab === 'sheet' && 'Google Sheet'}
-            </h1>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src="./logo-mark.png"
+              alt="Salami"
+              className="h-10 w-10 shrink-0 rounded-2xl bg-[#4B006E]/[0.06] p-1 object-contain"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                {config.wedding_title}
+              </p>
+              <h1 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#111111]">
+                {activeTab === 'collect' && 'Collect Salami'}
+                {activeTab === 'ledger' && 'My Ledger'}
+                {activeTab === 'summary' && 'Summary'}
+                {activeTab === 'sheet' && 'Google Sheet'}
+              </h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -1113,16 +1183,17 @@ export default function App() {
                     ? 'Google Cloud Client ID is not set in .env yet. All entries are safely saved in IndexedDB and ready for CSV export.'
                     : sheetMeta.spreadsheetId
                     ? `Linked to "${sheetMeta.spreadsheetName}" via drive.file scope.`
-                    : 'Sign in with Gmail to create or join a shared wedding Google Sheet.'}
+                    : 'Sign in with Gmail — your wedding Google Sheet will be created automatically.'}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {!googleUser ? (
                     <button
                       onClick={handleGoogleSignIn}
-                      className="rounded-full bg-[#FF7A00] px-4 py-2.5 text-xs font-extrabold text-white"
+                      disabled={syncingNow}
+                      className="rounded-full bg-[#FF7A00] px-4 py-2.5 text-xs font-extrabold text-white disabled:opacity-60"
                     >
-                      Sign in with Google
+                      {syncingNow ? 'Setting up Sheet...' : 'Sign in with Google'}
                     </button>
                   ) : (
                     <>
@@ -1332,6 +1403,7 @@ export default function App() {
           onClose={() => setSettingsOpen(false)}
           config={config}
           onSaveConfig={handleSaveConfig}
+          onRerunOnboarding={() => setOnboardingDone(false)}
         />
 
         <EnvelopeClearSheet
@@ -1342,6 +1414,8 @@ export default function App() {
           onClose={() => setClearingEntry(null)}
           onSaveAndNext={handleClearEnvelope}
         />
+        </>
+        )}
       </div>
     </div>
   );

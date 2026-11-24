@@ -54,6 +54,8 @@ function configToRows(config) {
     ['key', 'value'],
     ['schema_version', config.schema_version || '1.0'],
     ['wedding_title', config.wedding_title || 'Wedding Salami Ledger'],
+    ['groom_name', config.groom_name || ''],
+    ['bride_name', config.bride_name || ''],
     ['envelope_prefix', config.envelope_prefix ?? ''],
     ['currency', config.currency || 'PKR'],
     ['quick_chips', JSON.stringify(config.quick_chips || DEFAULT_CONFIG.quick_chips)],
@@ -133,7 +135,7 @@ export async function createWeddingSpreadsheet(accessToken, config) {
       valueInputOption: 'USER_ENTERED',
       data: [
         { range: 'Ledger!A1:O1', values: [LEDGER_HEADERS] },
-        { range: '_Config!A1:B14', values: configToRows(config) }
+        { range: '_Config!A1:B16', values: configToRows(config) }
       ]
     })
   });
@@ -272,7 +274,7 @@ export async function updateLedgerRowById(accessToken, spreadsheetId, entry) {
 
 export async function writeConfigTab(accessToken, spreadsheetId, config) {
   const res = await fetch(
-    `${SHEETS_BASE}/${spreadsheetId}/values/_Config!A1:B14?valueInputOption=USER_ENTERED`,
+    `${SHEETS_BASE}/${spreadsheetId}/values/_Config!A1:B16?valueInputOption=USER_ENTERED`,
     {
       method: 'PUT',
       headers: {

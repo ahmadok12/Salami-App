@@ -8,21 +8,27 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'privacy.html'],
+      includeAssets: ['logo.png', 'logo-mark.png', 'icon-192.png', 'icon-512.png', 'privacy.html'],
       manifest: {
-        name: 'SalamiBook — Wedding Salami Collector',
-        short_name: 'SalamiBook',
+        name: 'Salami — Wedding Salami Collector',
+        short_name: 'Salami',
         description: 'Offline-first Pakistani wedding salami collector synced to your own Google Sheet.',
         theme_color: '#FFFFFF',
-        background_color: '#F2D5BB',
+        background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',
         start_url: './',
         icons: [
           {
-            src: 'icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: 'icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]

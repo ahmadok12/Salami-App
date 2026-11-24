@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
-import { CURRENCY_PRESETS } from '../config/defaults.js';
+import { CURRENCY_PRESETS, buildWeddingTitle } from '../config/defaults.js';
 
 function ChipEditor({ label, items, onChange, placeholder }) {
   const [draft, setDraft] = useState('');
@@ -124,7 +124,7 @@ function AmountChipEditor({ currency, items, onChange }) {
   );
 }
 
-export default function SettingsDrawer({ open, onClose, config, onSaveConfig }) {
+export default function SettingsDrawer({ open, onClose, config, onSaveConfig, onRerunOnboarding }) {
   const [draft, setDraft] = useState(config);
 
   React.useEffect(() => {
@@ -155,6 +155,43 @@ export default function SettingsDrawer({ open, onClose, config, onSaveConfig }) 
         </div>
 
         <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Groom&apos;s Name</label>
+              <input
+                type="text"
+                value={draft.groom_name || ''}
+                placeholder="e.g. Ali"
+                onChange={(e) => {
+                  const g = e.target.value;
+                  setDraft({
+                    ...draft,
+                    groom_name: g,
+                    wedding_title: buildWeddingTitle(g, draft.bride_name || '', draft.wedding_title)
+                  });
+                }}
+                className="w-full rounded-2xl bg-[#F6F6F6] px-3.5 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-[#111111]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Bride&apos;s Name</label>
+              <input
+                type="text"
+                value={draft.bride_name || ''}
+                placeholder="e.g. Ayesha"
+                onChange={(e) => {
+                  const b = e.target.value;
+                  setDraft({
+                    ...draft,
+                    bride_name: b,
+                    wedding_title: buildWeddingTitle(draft.groom_name || '', b, draft.wedding_title)
+                  });
+                }}
+                className="w-full rounded-2xl bg-[#F6F6F6] px-3.5 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-[#111111]"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Wedding Title</label>
             <input
@@ -308,6 +345,19 @@ export default function SettingsDrawer({ open, onClose, config, onSaveConfig }) 
           >
             Save Wedding Settings
           </button>
+
+          {onRerunOnboarding && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onRerunOnboarding();
+              }}
+              className="w-full rounded-full bg-[#F6F6F6] py-3 text-xs font-bold text-neutral-600"
+            >
+              Re-run Wedding Setup Wizard
+            </button>
+          )}
         </div>
       </div>
     </div>

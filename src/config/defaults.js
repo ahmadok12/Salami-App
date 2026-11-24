@@ -87,7 +87,9 @@ export const CURRENCY_PRESETS = {
 
 export const DEFAULT_CONFIG = {
   schema_version: SCHEMA_VERSION,
-  wedding_title: 'Ali & Ayesha Wedding',
+  groom_name: '',
+  bride_name: '',
+  wedding_title: 'Wedding Salami',
   active_collector: 'Collector 1',
   envelope_prefix: 'A-',
   currency: 'PKR',
@@ -277,4 +279,14 @@ export function getTileVisualTheme(amount, currencyCode = 'PKR') {
     isExactDenom,
     stackLayers
   };
+}
+
+
+export function buildWeddingTitle(groomName = '', brideName = '', fallback = 'Wedding Salami') {
+  const g = groomName.trim();
+  const b = brideName.trim();
+  if (g && b) return `${g} & ${b} Wedding`;
+  if (g) return `${g}'s Wedding`;
+  if (b) return `${b}'s Wedding`;
+  return fallback;
 }
